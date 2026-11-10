@@ -19,7 +19,11 @@ public class UserDB {
         } catch (ClassNotFoundException e) {
             throw new SQLException("PostgreSQL JDBC driver is missing", e);
         }
-        String sql = "INSERT INTO email_subscribers (email, first_name, last_name) VALUES (?, ?, ?)";
+        String table = System.getenv().getOrDefault("EMAIL_DB_TABLE", "email_subscribers");
+        if (!table.matches("[a-z][a-z0-9_]{0,39}")) {
+            throw new SQLException("EMAIL_DB_TABLE must be a simple lowercase table name (max 40 characters).");
+        }
+        String sql = "INSERT INTO public." + table + " (email, first_name, last_name) VALUES (?, ?, ?)";
         try (Connection connection = DriverManager.getConnection(url, username, password);
              PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setString(1, user.getEmail());
